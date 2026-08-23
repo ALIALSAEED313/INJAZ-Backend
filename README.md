@@ -1,1 +1,25 @@
 # INJAZ-Backend
+
+## User Stories
+
+### Authentication & Authorization
+- **As a** new user, **I want to** sign up for an account by providing my details, **so that** I can access the platform.
+- **As a** registered user, **I want to** log in securely, **so that** I can manage my services or orders.
+- **As a** user, **I want to** log out of my account, **so that** my session remains secure.
+
+### Browsing & Searching
+- **As a** visitor or buyer, **I want to** view a list of all available services on the homepage, **so that** I can explore what freelancers offer.
+- **As a** buyer, **I want to** click on a specific service to view its full details and price, **so that** I can decide whether to purchase it.
+
+### Service Management (For Sellers)
+- **As a** seller, **I want to** create a new service by adding a title, description, category, and price, **so that** potential buyers can purchase it.
+- **As a** seller, **I want to** edit or delete my existing services, **so that** I can keep my offerings up to date.
+
+### Orders & Tracking
+- **As a** buyer, **I want to** purchase a service, **so that** the seller can start working on it.
+- **As a** buyer, **I want to** view my active and past orders in my dashboard, **so that** I can track their progress.
+- **As a** seller, **I want to** view incoming orders from buyers, **so that** I know when to start working.
+- **As a** seller, **I want to** update the status of an order (e.g., from *In Progress* to *Delivered*), **so that** the buyer knows the task is complete.
+
+### Legal & Compliance
+- **As a** user, **I want to** view the Terms & Conditions and Privacy Policy in the website footer, **so that** I understand my rights, obligations, and data privacy terms.
