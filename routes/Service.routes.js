@@ -10,4 +10,6 @@ const {
 
 const router = express.Router();
 
+router.get("/", getServices);
+
 module.exports = router;
