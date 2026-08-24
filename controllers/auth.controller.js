@@ -49,6 +49,14 @@ const getServices = async (req, res) => {
       query = query.sort({ price: -1 });
     }
 
+    if (sort === "newest") {
+      query = query.sort({ createdAt: -1 });
+    }
+
+    if (sort === "oldest") {
+      query = query.sort({ createdAt: 1 });
+    }
+
     const services = await query;
 
     res.status(200).json(services);
