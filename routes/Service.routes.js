@@ -12,4 +12,6 @@ const router = express.Router();
 
 router.get("/", getServices);
 
+router.get("/:id", getServiceById);
+
 module.exports = router;
