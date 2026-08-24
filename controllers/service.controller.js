@@ -2,8 +2,10 @@ const Service = require("../models/Service");
 
 const getServices = async (req, res) => {
   try {
-    const { search } = req.query;
+    const { search, category } = req.query;
+
     const filter = {};
+
     if (search) {
       filter.$or = [
         {
@@ -20,7 +22,13 @@ const getServices = async (req, res) => {
         },
       ];
     }
+
+    if (category) {
+      filter.category = category;
+    }
+
     const services = await Service.find(filter);
+
     res.status(200).json(services);
   } catch (error) {
     res.status(500).json({
