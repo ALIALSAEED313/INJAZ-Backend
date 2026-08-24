@@ -2,7 +2,7 @@ const Service = require("../models/Service");
 
 const getServices = async (req, res) => {
   try {
-    const { search, category, minPrice } = req.query;
+    const { search, category, minPrice, maxPrice } = req.query;
 
     const filter = {};
 
@@ -27,10 +27,16 @@ const getServices = async (req, res) => {
       filter.category = category;
     }
 
-    if (minPrice) {
-      filter.price = {
-        $gte: Number(minPrice),
-      };
+    if (minPrice || maxPrice) {
+      filter.price = {};
+
+      if (minPrice) {
+        filter.price.$gte = Number(minPrice);
+      }
+
+      if (maxPrice) {
+        filter.price.$lte = Number(maxPrice);
+      }
     }
 
     const services = await Service.find(filter);
