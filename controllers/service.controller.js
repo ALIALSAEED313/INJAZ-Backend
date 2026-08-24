@@ -129,6 +129,8 @@ module.exports = {
   getServices,
   getServiceById,
   createService,
+  getServices,
+  getServiceById,
   updateService,
   deleteService,
 };
