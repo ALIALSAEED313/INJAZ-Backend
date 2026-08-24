@@ -16,4 +16,6 @@ router.get("/:id", getServiceById);
 
 router.post("/", createService);
 
+router.put("/:id", updateService);
+
 module.exports = router;
