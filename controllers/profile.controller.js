@@ -43,8 +43,13 @@ async function getMyProfile(req, res) {
 // Update logged-in user's profile
 async function updateProfile(req, res) {
   try {
-        const { name, avatarUrl, bio, country, languages, skills, isSeller} = req.body
+        const { name, bio, country, languages, skills, isSeller} = req.body
 
+        let avatarUrl = req.body.avatarUrl
+
+        if(req.file && req.file.url){
+            avatarUrl = req.file.url
+        }
         const updatedUser = await User.findByIdAndUpdate(req.user._id, {
             name,
             avatarUrl,
