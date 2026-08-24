@@ -2,13 +2,13 @@ const express = require("express");
 const mongoose = require("mongoose");
 require("dotenv").config();
 
-const serviceRoutes = require("./routes/serviceRoutes");
+const serviceRoutes = require("./routes/Service.routes");
 
 const app = express();
 
 app.use(express.json());
 
-app.use("/services", serviceRoutes);
+app.use("/", serviceRoutes);
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
