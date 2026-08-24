@@ -43,6 +43,26 @@ const getServiceById = async (req, res) => {
   }
 };
 
+const updateService = async (req, res) => {
+  try {
+    const service = await Service.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+    if (!service) {
+      return res.status(404).json({
+        message: "Service not found",
+      });
+    }
+    res.status(200).json(service);
+  } catch (error) {
+    res.status(400).json({
+      message: "Failed to update service",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   createService,
 };
