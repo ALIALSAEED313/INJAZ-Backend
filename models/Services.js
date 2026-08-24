@@ -18,6 +18,12 @@ const serviceSchema = new mongoose.Schema({
     required: true,
     min: 0,
   },
+
+  deliveryTime: {
+    type: Number,
+    required: true,
+    min: 1,
+  },
 });
 
 module.exports = mongoose.model("Service", serviceSchema);
