@@ -2,7 +2,15 @@ const Service = require("../models/Service");
 
 const getServices = async (req, res) => {
   try {
-    const { search, category, minPrice, maxPrice, sort } = req.query;
+    const {
+      search,
+      category,
+      minPrice,
+      maxPrice,
+      sort,
+      page = 1,
+      limit = 10,
+    } = req.query;
 
     const filter = {};
 
@@ -57,9 +65,20 @@ const getServices = async (req, res) => {
       query = query.sort({ createdAt: 1 });
     }
 
-    const services = await query;
+    const pageNumber = Number(page);
+    const limitNumber = Number(limit);
+    const skip = (pageNumber - 1) * limitNumber;
 
-    res.status(200).json(services);
+    const totalServices = await Service.countDocuments(filter);
+
+    const services = await query.skip(skip).limit(limitNumber);
+
+    res.status(200).json({
+      services,
+      currentPage: pageNumber,
+      totalPages: Math.ceil(totalServices / limitNumber),
+      totalServices,
+    });
   } catch (error) {
     res.status(500).json({
       message: "Failed to get services",
