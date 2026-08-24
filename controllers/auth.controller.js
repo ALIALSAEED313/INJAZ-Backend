@@ -56,6 +56,10 @@ async function signIn(req, res) {
       return res.status(401).json({ message: "Invalid credentials." });
     }
 
+    if(user.isDeleted){
+      return res.status(401).json({message: 'Invalid credentials.'})
+    }
+
     const isPasswordCorrect = await bcrypt.compare(
       password,
       user.hashedPassword,
