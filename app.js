@@ -9,7 +9,8 @@ const cors = require('cors')
 const authRoutes = require('./routes/auth.routes')
 const orderRoutes = require('./routes/ordersRoutes')
 const profileRoutes = require("./routes/profile.routes")
-const serviceRoutes = require("./routes/Service.routes");
+const serviceRoutes = require("./routes/Service.routes")
+const chatRoutes = require("./routes/chatRoutes")
 
 // Middleware
 app.use(
@@ -27,6 +28,7 @@ app.use('/auth',authRoutes)
 app.use('/orders', orderRoutes)
 app.use('/profile', profileRoutes)
 app.use("/services", serviceRoutes);
+app.use("/chat", chatRoutes)
 
 
 module.exports = app
