@@ -108,13 +108,14 @@ const getServiceById = async (req, res) => {
 
 const createService = async (req, res) => {
   try {
-    const { title, description, price, deliveryTime } = req.body
+    const { title, description, category, price, deliveryTime } = req.body;
     const service = await Service.create({
       title,
+      category,
       description,
       price,
       deliveryTime,
-      freelancer : req.user._id
+      freelancer: req.user._id,
     });
 
     res.status(201).json(service);
