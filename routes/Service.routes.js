@@ -1,4 +1,5 @@
 const express = require("express");
+const verifyToken = require("../middleware/verifyToken")
 
 const {
   getServices,
@@ -14,10 +15,10 @@ router.get("/", getServices);
 
 router.get("/:id", getServiceById);
 
-router.post("/", createService);
+router.post("/", verifyToken, createService);
 
-router.put("/:id", updateService);
+router.put("/:id", verifyToken, updateService);
 
-router.delete("/:id", deleteService);
+router.delete("/:id", verifyToken, deleteService);
 
 module.exports = router;
