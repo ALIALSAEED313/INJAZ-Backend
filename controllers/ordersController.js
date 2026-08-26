@@ -40,7 +40,7 @@ async function getUserOrders(req, res){
 
 async function updateOrderStatus(req, res){
     try{
-        const { id } = req.params
+        const id = req.params.orderId || req.params.id
         const { status } = req.body
         const userId = req.user._id
 
@@ -65,7 +65,8 @@ async function updateOrderStatus(req, res){
 }
 const getOrderById = async (req, res) => {
     try {
-        const order = await Order.findById(req.params.id)
+        const id = req.params.orderId || req.params.id
+        const order = await Order.findById(id)
             .populate('buyer', 'username email')
             .populate('seller', 'username email')
             .populate('service', 'title category price');
