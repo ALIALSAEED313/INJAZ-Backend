@@ -12,6 +12,7 @@ const profileRoutes = require("./routes/profile.routes")
 const serviceRoutes = require("./routes/Service.routes")
 const chatRoutes = require("./routes/chatRoutes")
 const reviewRoutes = require("./routes/review.routes")
+const adminRoutes = require("./routes/admin.routes")
 
 // Middleware
 app.use(
@@ -31,6 +32,6 @@ app.use('/profile', profileRoutes)
 app.use("/services", serviceRoutes);
 app.use("/chat", chatRoutes)
 app.use("/reviews", reviewRoutes)
-
+app.use("/admin", adminRoutes)
 
 module.exports = app
