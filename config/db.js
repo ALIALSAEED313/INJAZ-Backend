@@ -1,13 +1,13 @@
-const mongoose = require("mongoose")
+const app = require('./app.js')
+const connectToDB = require('./config/db.js')
 
-async function connectToDB(){ //connection to the database
-    try{
-        const connection = await mongoose.connect(process.env.MONGODB_URI)
-        console.log(`Connected to Database: ${connection.connection.name}`);
-    }
-    catch(error){
-        console.log("Error Occured",error)
-    }
+// connect to database and listen on Port 3000
+async function startServer() {
+    const PORT = process.env.PORT || 3000;
+    await connectToDB();
+
+    app.listen(PORT, () => {
+        console.log(`App is running on port ${PORT}`);
+    });
 }
-
-module.exports = connectToDB
+startServer();
