@@ -55,7 +55,7 @@ async function getMessages(req, res){
         .populate('sender', 'username avatarUrl')
         .sort({ createdAt: 1})
 
-        res.status(200).json({ message })
+        res.status(200).json({ messages })
     }
     catch(err){
         res.status(500).json({ message: 'Error fetching messages', err: err.message})

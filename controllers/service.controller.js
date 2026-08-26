@@ -89,7 +89,7 @@ const getServices = async (req, res) => {
 
 const getServiceById = async (req, res) => {
   try {
-    const service = await Service.findById(req.params.id);
+    const service = await Service.findById(req.params.id).populate('freelancer', 'username email avatarUrl');
 
     if (!service) {
       return res.status(404).json({
@@ -108,12 +108,14 @@ const getServiceById = async (req, res) => {
 
 const createService = async (req, res) => {
   try {
-    const { title, description, price, deliveryTime } = req.body
+    const { title, description, price, deliveryTime, category, images } = req.body;
     const service = await Service.create({
       title,
       description,
       price,
       deliveryTime,
+      category,
+      images,
       freelancer : req.user._id
     });
 

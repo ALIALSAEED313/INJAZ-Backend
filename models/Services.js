@@ -26,6 +26,11 @@ const serviceSchema = new mongoose.Schema(
       min: 1,
     },
 
+    category: {
+      type: String,
+      trim: true,
+    },
+
     images: [
       {
         type: String,
