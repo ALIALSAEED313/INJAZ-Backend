@@ -60,7 +60,7 @@ async function deleteService(req, res) {
     try {
         const deletedService = await Service.findByIdAndDelete(req.params.serviceId)
         if(!deletedService){return res.status(404).json({message: 'Service not found'})}
-        
+
         await Review.deleteMany({service: req.params.serviceId})
 
         return res.status(200).json({message: 'Service deleted successfully'})
@@ -104,5 +104,14 @@ async function deleteReview(req, res) {
             message: "Internal Server Error",
         }) 
     }
+}
+
+
+module.exports ={
+    getStats,
+    deleteUser,
+    deleteReview,
+    deleteService,
+    deleteOrder
 }
 
