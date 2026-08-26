@@ -80,6 +80,7 @@ async function signIn(req, res) {
       user: {
         _id: user._id,
         username: user.username,
+        avatarUrl: user.avatarUrl
       },
     });
   } catch (err) {
