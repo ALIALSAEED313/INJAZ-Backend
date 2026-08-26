@@ -63,9 +63,26 @@ async function updateOrderStatus(req, res){
         res.status(500).json({ message: 'Error updating order status', err: err.message})
     }
 }
+const getOrderById = async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id)
+            .populate('buyer', 'username email')
+            .populate('seller', 'username email')
+            .populate('service', 'title category price');
+
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        res.status(200).json(order);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching order', error: error.message });
+    }
+}
 
 module.exports = {
     createOrder,
     getUserOrders,
-    updateOrderStatus
+    updateOrderStatus,
+    getOrderById
 }
