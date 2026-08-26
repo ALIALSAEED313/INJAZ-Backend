@@ -40,6 +40,8 @@ async function sendMessage(req, res){
             lastMessage: newMessage._id
         })
 
+        await newMessage.populate('sender', 'username avatarUrl')
+
         res.status(201).json({ message: 'Message sent', data: newMessage})
     }
     catch(err){
