@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 
 async function signUp(req, res) {
   try {
-    const { username, password, email } = req.body;
+    const { username, password, email, isSeller } = req.body;
 
     // Validation
     if (!username || !password || !email) return res.status(400).json({message: "Username, email and password are required.",});
@@ -13,14 +13,15 @@ async function signUp(req, res) {
     const user = await User.create({
       username,
       hashedPassword: await bcrypt.hash(password, 12),
-      email
+      email,
+      isSeller: Boolean(isSeller)
     });
 
     const { _id, createdAt, updatedAt } = user;
 
     res
       .status(201)
-      .json({ username: user.username, email: user.email, _id, createdAt, updatedAt });
+      .json({ username: user.username, email: user.email, isSeller: user.isSeller, _id, createdAt, updatedAt });
   } catch (err) {
     console.log(err);
     if (err.name === "ValidationError") {
@@ -80,7 +81,8 @@ async function signIn(req, res) {
       user: {
         _id: user._id,
         username: user.username,
-        avatarUrl: user.avatarUrl
+        avatarUrl: user.avatarUrl,
+        isSeller: user.isSeller
       },
     });
   } catch (err) {
@@ -105,6 +107,7 @@ async function verifyUser(req, res) {
     return res.status(200).json({
         _id: user._id,
         username: user.username,
+        isSeller: user.isSeller
     });
   } catch (err) {
     console.error(err);
