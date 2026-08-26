@@ -7,7 +7,7 @@ const verifyToken = require("../middleware/verifyToken")
 router.use(verifyToken)
 router.post('/', createOrder)
 router.get('/my-orders', getUserOrders)
-router.get('/:id', getOrderById)
-router.put('/:id/status', updateOrderStatus)
+router.get('/:orderId', getOrderById)
+router.put('/:orderId/status', updateOrderStatus)
 
 module.exports = router

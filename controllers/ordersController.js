@@ -13,7 +13,7 @@ async function createOrder(req, res){
             status: 'Pending'
         })
 
-        res.status(201).json({ message: "Order created successfully", Order: newOrder})
+        res.status(201).json({ message: "Order created successfully", order: newOrder})
     }
     catch(err){
         res.status(500).json({ message: "Error creating order", err: err.message })
