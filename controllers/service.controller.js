@@ -203,6 +203,6 @@ module.exports = {
   createService,
   updateService,
   deleteService,
-  getServicesByFreelancer
-  getMyServices,
+  getServicesByFreelancer,
+  getMyServices
 };

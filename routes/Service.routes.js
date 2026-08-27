@@ -7,8 +7,8 @@ const {
   createService,
   updateService,
   deleteService,
-  getServicesByFreelancer
-  getMyServices,
+  getServicesByFreelancer,
+  getMyServices
 } = require("../controllers/service.controller");
 
 const router = express.Router();
