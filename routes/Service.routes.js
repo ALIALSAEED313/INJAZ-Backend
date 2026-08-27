@@ -7,6 +7,7 @@ const {
   createService,
   updateService,
   deleteService,
+  getServicesByFreelancer
   getMyServices,
 } = require("../controllers/service.controller");
 
@@ -23,5 +24,7 @@ router.post("/", verifyToken, createService);
 router.put("/:id", verifyToken, updateService);
 
 router.delete("/:id", verifyToken, deleteService);
+
+router.get('/profile/:userId', getServicesByFreelancer)
 
 module.exports = router;
