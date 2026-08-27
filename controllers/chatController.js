@@ -1,5 +1,6 @@
 const Conversation = require('../models/Conversation')
 const Message = require('../models/Message')
+const Notification = require('../models/Notification')
 
 
 async function getOrCreateConversation(req, res){
@@ -36,9 +37,22 @@ async function sendMessage(req, res){
             service: serviceId
         })
 
-        await Conversation.findByIdAndUpdate(conversationId, {
+        const conv = await Conversation.findByIdAndUpdate(conversationId, {
             lastMessage: newMessage._id
         })
+
+        if (conv && conv.participants) {
+            const recipientId = conv.participants.find(p => p.toString() !== senderId.toString())
+            if (recipientId) {
+                await Notification.create({
+                    recipient: recipientId,
+                    sender: senderId,
+                    type: 'NEW_MESSAGE',
+                    title: 'New Message Received',
+                    message: content.length > 60 ? content.substring(0, 57) + '...' : content
+                })
+            }
+        }
 
         await newMessage.populate('sender', 'username avatarUrl')
 
