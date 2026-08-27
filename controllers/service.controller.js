@@ -171,10 +171,26 @@ const deleteService = async (req, res) => {
   }
 };
 
+const getServicesByFreelancer = async (req, res) => {
+  try {
+    const services = await Service.find({
+      freelancer: req.params.userId
+    })
+
+    return res.status(200).json(services)
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to get freelancer services",
+      error: error.message
+    })
+  }
+}
+
 module.exports = {
   getServices,
   getServiceById,
   createService,
   updateService,
   deleteService,
+  getServicesByFreelancer
 };
