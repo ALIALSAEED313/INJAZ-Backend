@@ -1,5 +1,6 @@
 const Order = require('../models/Order')
 const User = require('../models/User')
+const Notification = require('../models/Notification')
 
 async function createOrder(req, res){
     try{
@@ -11,7 +12,16 @@ async function createOrder(req, res){
             buyer: buyerId,
             seller: sellerId,
             price: price,
-            status: 'Pending'
+            status: 'Requested'
+        })
+
+        await Notification.create({
+            recipient: sellerId,
+            sender: buyerId,
+            type: 'ORDER_REQUESTED',
+            title: 'New Order Requested!',
+            message: 'A buyer has requested your service. Please accept the order to proceed.',
+            order: newOrder._id
         })
 
         res.status(201).json({ message: "Order created successfully", order: newOrder})
@@ -62,6 +72,20 @@ async function updateOrderStatus(req, res){
 
         order.status = status
         await order.save()
+
+        const titleText = status === 'Pending' ? 'Order Accepted!' : `Order Status: ${status}`
+        const messageText = status === 'Pending'
+            ? 'The seller accepted your order request!'
+            : `The seller updated your order status to "${status}".`
+
+        await Notification.create({
+            recipient: order.buyer,
+            sender: userId,
+            type: 'STATUS_CHANGED',
+            title: titleText,
+            message: messageText,
+            order: order._id
+        })
 
         res.status(200).json({ message: 'Order status updated', order})
     }
