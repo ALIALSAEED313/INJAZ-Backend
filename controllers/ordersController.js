@@ -1,4 +1,5 @@
 const Order = require('../models/Order')
+const User = require('../models/User')
 
 async function createOrder(req, res){
     try{
@@ -50,8 +51,13 @@ async function updateOrderStatus(req, res){
             return res.status(404).json({message: 'Order not found'})
         }
 
+        const user = await User.findById(userId)
+        if(!user || !user.isSeller){
+            return res.status(403).json({ message: 'Only registered sellers can update order status'})
+        }
+
         if(order.seller.toString() !== userId.toString()) {
-            return res.status(403).json({ message: 'Not authorized to update this order'})
+            return res.status(403).json({ message: 'Only the service creator can update this order status'})
         }
 
         order.status = status

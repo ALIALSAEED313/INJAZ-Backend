@@ -185,6 +185,17 @@ const getServicesByFreelancer = async (req, res) => {
     })
   }
 }
+const getMyServices = async (req, res) => {
+  try {
+    const services = await Service.find({ freelancer: req.user._id });
+    res.status(200).json(services);
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to get your services",
+      error: error.message,
+    });
+  }
+};
 
 module.exports = {
   getServices,
@@ -193,4 +204,5 @@ module.exports = {
   updateService,
   deleteService,
   getServicesByFreelancer
+  getMyServices,
 };

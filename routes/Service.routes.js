@@ -8,11 +8,14 @@ const {
   updateService,
   deleteService,
   getServicesByFreelancer
+  getMyServices,
 } = require("../controllers/service.controller");
 
 const router = express.Router();
 
 router.get("/", getServices);
+
+router.get("/my-services", verifyToken, getMyServices);
 
 router.get("/:id", getServiceById);
 
