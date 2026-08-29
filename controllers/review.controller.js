@@ -61,6 +61,34 @@ async function getServiceReviews(req, res) {
     }
 }
 
+async function getReviewsForSeller(req, res) {
+    try {
+        const sellerServices = await Service.find({
+            freelancer: req.params.userId
+        }).select("_id")
+
+        const serviceIds = sellerServices.map(
+            (service) => service._id
+        )
+
+        const reviews = await Review.find({
+            service: { $in: serviceIds }
+        })
+            .populate("reviewer", "username name avatarUrl country")
+            .populate("service", "title name")
+            .select("comment rating reviewer service createdAt")
+
+        return res.status(200).json(reviews)
+    } catch (err) {
+        console.error(err)
+
+        return res.status(500).json({
+            message: "Internal Server Error",
+        })
+    }
+}
+
+
 async function updateReview(req, res) {
     try {
         const { comment, rating } = req.body
@@ -109,6 +137,7 @@ async function deleteReview(req, res) {
 module.exports = {
   createReview,
   getServiceReviews,
+  getReviewsForSeller,
   updateReview,
   deleteReview
 }

@@ -10,6 +10,8 @@ router.post("/order/:orderId", verifyToken, reviewController.createReview)
 
 router.get("/service/:serviceId", reviewController.getServiceReviews)
 
+router.get("/profile/:userId", reviewController.getReviewsForSeller)
+
 
 router.put("/:reviewId", verifyToken, reviewController.updateReview)
 
