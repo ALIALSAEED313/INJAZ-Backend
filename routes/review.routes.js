@@ -7,14 +7,13 @@ const verifyToken = require("../middleware/verifyToken")
 
 router.post("/order/:orderId", verifyToken, reviewController.createReview)
 
-
 router.get("/service/:serviceId", reviewController.getServiceReviews)
 
 router.get("/profile/:userId", reviewController.getReviewsForSeller)
 
+router.get("/order/:orderId", verifyToken, reviewController.getReviewByOrder)
 
 router.put("/:reviewId", verifyToken, reviewController.updateReview)
-
 
 router.delete("/:reviewId", verifyToken, reviewController.deleteReview)
 
