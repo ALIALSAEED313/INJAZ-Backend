@@ -69,10 +69,16 @@ const getServices = async (req, res) => {
     const limitNumber = Number(limit);
     const skip = (pageNumber - 1) * limitNumber;
     const totalServices = await Service.countDocuments(filter);
+<<<<<<< HEAD
     const services = await query
       .skip(skip)
       .limit(limitNumber)
       .populate("freelancer", "username email avatarUrl");
+=======
+
+    const services = await query.skip(skip).limit(limitNumber).populate('freelancer', 'username avatarUrl');
+
+>>>>>>> c4ae4c84a6f4bd826047564433ba05c990f6ef43
     res.status(200).json({
       services,
       currentPage: pageNumber,
@@ -203,9 +209,16 @@ const deleteService = async (req, res) => {
 const getServicesByFreelancer = async (req, res) => {
   try {
     const services = await Service.find({
+<<<<<<< HEAD
       freelancer: req.params.userId,
     });
     return res.status(200).json(services);
+=======
+      freelancer: req.params.userId
+    }).populate('freelancer', 'username avatarUrl')
+
+    return res.status(200).json(services)
+>>>>>>> c4ae4c84a6f4bd826047564433ba05c990f6ef43
   } catch (error) {
     return res.status(500).json({
       message: "Failed to get freelancer services",
