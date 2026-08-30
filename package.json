@@ -24,11 +24,7 @@
     "mongoose": "^9.1.2",
     "morgan": "^1.10.1",
     "multer": "^2.2.0",
-<<<<<<< HEAD
-    "nodemailer": "^9.0.6",
-=======
     "nodemailer": "^7.0.13",
->>>>>>> 4c668bf5e1222aad7ada11a3c7bc6b6352b45274
     "react-router": "^7.11.0"
   },
   "devDependencies": {
