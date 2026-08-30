@@ -71,7 +71,7 @@ const getServices = async (req, res) => {
 
     const totalServices = await Service.countDocuments(filter);
 
-    const services = await query.skip(skip).limit(limitNumber);
+    const services = await query.skip(skip).limit(limitNumber).populate('freelancer', 'username avatarUrl');
 
     res.status(200).json({
       services,
@@ -175,7 +175,7 @@ const getServicesByFreelancer = async (req, res) => {
   try {
     const services = await Service.find({
       freelancer: req.params.userId
-    })
+    }).populate('freelancer', 'username avatarUrl')
 
     return res.status(200).json(services)
   } catch (error) {
