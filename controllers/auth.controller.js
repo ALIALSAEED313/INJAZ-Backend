@@ -108,7 +108,8 @@ async function verifyUser(req, res) {
         _id: user._id,
         username: user.username,
         isSeller: user.isSeller,
-        avatarUrl: user.avatarUrl
+        avatarUrl: user.avatarUrl,
+        role: user.role
     });
   } catch (err) {
     console.error(err);

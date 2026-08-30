@@ -6,6 +6,16 @@ const isAdmin = require("../middleware/isAdmin")
 
 router.get("/stats", verifyToken, isAdmin, adminController.getStats)
 
+router.get("/users", verifyToken, isAdmin, adminController.getUsers)
+
+router.get("/services", verifyToken, isAdmin, adminController.getServices)
+
+router.get("/orders", verifyToken, isAdmin, adminController.getOrders)
+
+router.get("/reviews", verifyToken, isAdmin, adminController.getReviews)
+
+router.put('/users/:userId/role', verifyToken, isAdmin, adminController.updateUserRole)
+
 router.delete("/users/:userId", verifyToken, isAdmin, adminController.deleteUser)
 
 router.delete("/services/:serviceId", verifyToken, isAdmin, adminController.deleteService)

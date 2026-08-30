@@ -10,7 +10,7 @@ async function isAdmin(req, res, next) {
       })
     }
 
-    if (user.role !== "admin") {
+    if (user.role !== "admin" || user.isDeleted) { 
       return res.status(403).json({
         message: "Admin access required"
       })
