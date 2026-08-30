@@ -1,5 +1,5 @@
 const express = require("express");
-const verifyToken = require("../middleware/verifyToken")
+const verifyToken = require("../middleware/verifyToken");
 
 const {
   getServices,
@@ -8,7 +8,8 @@ const {
   updateService,
   deleteService,
   getServicesByFreelancer,
-  getMyServices
+  getMyServices,
+  getPopularSearches,
 } = require("../controllers/service.controller");
 
 const router = express.Router();
@@ -16,6 +17,7 @@ const router = express.Router();
 router.get("/", getServices);
 
 router.get("/my-services", verifyToken, getMyServices);
+router.get("/populer-searches", getPopularSearches);
 
 router.get("/:id", getServiceById);
 
@@ -25,6 +27,6 @@ router.put("/:id", verifyToken, updateService);
 
 router.delete("/:id", verifyToken, deleteService);
 
-router.get('/profile/:userId', getServicesByFreelancer)
+router.get("/profile/:userId", getServicesByFreelancer);
 
 module.exports = router;
