@@ -1,18 +1,53 @@
 const User = require("../models/User");
 
+function normalizeListValue(value) {
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item).trim()).filter(Boolean);
+  }
+
+  if (typeof value !== "string") {
+    return [];
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(trimmed);
+    if (Array.isArray(parsed)) {
+      return parsed.map((item) => String(item).trim()).filter(Boolean);
+    }
+  } catch (err) {
+    // ignore invalid JSON and fall back to comma splitting below
+  }
+
+  return trimmed
+    .replace(/^\[|\]$/g, "")
+    .split(",")
+    .map((item) => item.replace(/["'\[\]]/g, "").trim())
+    .filter(Boolean);
+}
+
 // Get public profile
 async function getProfile(req, res) {
   try {
     const foundUser = await User.findById(req.params.userId).select(
-      "username name avatarUrl bio country languages skills isSeller createdAt",
+      "username name avatarUrl bio country gender languages skills isSeller createdAt",
     );
 
     if (!foundUser) {
-      g;
       return res.status(404).json({ message: "User not found" });
     }
 
-    return res.status(200).json(foundUser);
+    const formattedUser = {
+      ...foundUser.toObject(),
+      languages: normalizeListValue(foundUser.languages),
+      skills: normalizeListValue(foundUser.skills),
+    };
+
+    return res.status(200).json(formattedUser);
   } catch (err) {
     console.error(err);
 
@@ -26,14 +61,20 @@ async function getProfile(req, res) {
 async function getMyProfile(req, res) {
   try {
     const foundUser = await User.findById(req.user._id).select(
-      "username email name avatarUrl bio country languages skills isSeller createdAt",
+      "username email name avatarUrl bio country gender languages skills isSeller createdAt",
     );
 
     if (!foundUser) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    return res.status(200).json(foundUser);
+    const formattedUser = {
+      ...foundUser.toObject(),
+      languages: normalizeListValue(foundUser.languages),
+      skills: normalizeListValue(foundUser.skills),
+    };
+
+    return res.status(200).json(formattedUser);
   } catch (err) {
     console.error(err);
 
@@ -46,15 +87,18 @@ async function getMyProfile(req, res) {
 // Update logged-in user's
 async function updateProfile(req, res) {
   try {
-    const { name, bio, country, languages, skills, isSeller } = req.body;
+    const { name, bio, country, gender, languages, skills, isSeller } =
+      req.body;
 
     const updateData = {};
 
     if (name !== undefined) updateData.name = name;
     if (bio !== undefined) updateData.bio = bio;
     if (country !== undefined) updateData.country = country;
-    if (languages !== undefined) updateData.languages = languages;
-    if (skills !== undefined) updateData.skills = skills;
+    if (gender !== undefined) updateData.gender = gender;
+    if (languages !== undefined)
+      updateData.languages = normalizeListValue(languages);
+    if (skills !== undefined) updateData.skills = normalizeListValue(skills);
     if (isSeller !== undefined) updateData.isSeller = isSeller;
 
     if (req.file && req.file.url) {
@@ -65,7 +109,7 @@ async function updateProfile(req, res) {
       new: true,
       runValidators: true,
     }).select(
-      "username email name avatarUrl bio country languages skills isSeller createdAt",
+      "username email name avatarUrl bio country gender languages skills isSeller createdAt",
     );
 
     if (!updatedUser) {
@@ -74,7 +118,13 @@ async function updateProfile(req, res) {
       });
     }
 
-    return res.status(200).json(updatedUser);
+    const formattedUser = {
+      ...updatedUser.toObject(),
+      languages: normalizeListValue(updatedUser.languages),
+      skills: normalizeListValue(updatedUser.skills),
+    };
+
+    return res.status(200).json(formattedUser);
   } catch (err) {
     console.error(err);
 

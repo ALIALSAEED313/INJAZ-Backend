@@ -121,15 +121,20 @@ const getServiceById = async (req, res) => {
 };
 const createService = async (req, res) => {
   try {
-    const { title, description, price, deliveryTime, category, images } =
-      req.body;
+    const { title, description, price, deliveryTime, category } = req.body;
+    const imageUrls = (req.files || []).map((file) => file.url).filter(Boolean);
+
     const service = await Service.create({
       title,
       category,
       description,
       price,
       deliveryTime,
-      images,
+      images: imageUrls.length
+        ? imageUrls
+        : Array.isArray(req.body.images)
+          ? req.body.images
+          : [],
       freelancer: req.user._id,
     });
     res.status(201).json(service);
@@ -142,7 +147,25 @@ const createService = async (req, res) => {
 };
 const updateService = async (req, res) => {
   try {
-    const service = await Service.findByIdAndUpdate(req.params.id, req.body, {
+    const { title, description, price, deliveryTime, category } = req.body;
+    const updateData = {};
+
+    if (title !== undefined) updateData.title = title;
+    if (description !== undefined) updateData.description = description;
+    if (price !== undefined) updateData.price = Number(price);
+    if (deliveryTime !== undefined)
+      updateData.deliveryTime = Number(deliveryTime);
+    if (category !== undefined) updateData.category = category;
+
+    if (req.files && req.files.length) {
+      updateData.images = req.files.map((file) => file.url).filter(Boolean);
+    } else if (req.body.images !== undefined) {
+      updateData.images = Array.isArray(req.body.images)
+        ? req.body.images
+        : [req.body.images].filter(Boolean);
+    }
+
+    const service = await Service.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
       runValidators: true,
     });

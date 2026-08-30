@@ -1,5 +1,6 @@
 const express = require("express");
 const verifyToken = require("../middleware/verifyToken");
+const { upload, uploadToImageKit } = require("../middleware/Upload");
 
 const {
   getServices,
@@ -21,9 +22,21 @@ router.get("/popular-searches", getPopularSearches);
 
 router.get("/:id", getServiceById);
 
-router.post("/", verifyToken, createService);
+router.post(
+  "/",
+  verifyToken,
+  upload.array("images", 5),
+  uploadToImageKit,
+  createService,
+);
 
-router.put("/:id", verifyToken, updateService);
+router.put(
+  "/:id",
+  verifyToken,
+  upload.array("images", 5),
+  uploadToImageKit,
+  updateService,
+);
 
 router.delete("/:id", verifyToken, deleteService);
 
