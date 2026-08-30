@@ -122,8 +122,10 @@ async function signIn(req, res) {
       user: {
         _id: user._id,
         username: user.username,
+        email: user.email,
         avatarUrl: user.avatarUrl,
         isSeller: user.isSeller,
+        role: user.role,
       },
     });
   } catch (err) {
@@ -146,17 +148,12 @@ async function verifyUser(req, res) {
     }
 
     return res.status(200).json({
-<<<<<<< HEAD
       _id: user._id,
       username: user.username,
+      email: user.email,
       isSeller: user.isSeller,
-=======
-        _id: user._id,
-        username: user.username,
-        isSeller: user.isSeller,
-        avatarUrl: user.avatarUrl,
-        role: user.role
->>>>>>> c4ae4c84a6f4bd826047564433ba05c990f6ef43
+      avatarUrl: user.avatarUrl,
+      role: user.role,
     });
   } catch (err) {
     console.error(err);
