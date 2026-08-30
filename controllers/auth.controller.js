@@ -1,27 +1,50 @@
 const bcrypt = require("bcrypt");
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
+const { sendNotificationEmail } = require("../utils/emailService");
 
 async function signUp(req, res) {
   try {
     const { username, password, email, isSeller } = req.body;
 
     // Validation
-    if (!username || !password || !email) return res.status(400).json({message: "Username, email and password are required.",});
-    if (password.length < 6) return res.status(400).json({message: "Password must be more than 6 characters",});
+    if (!username || !password || !email)
+      return res
+        .status(400)
+        .json({ message: "Username, email and password are required." });
+    if (password.length < 6)
+      return res
+        .status(400)
+        .json({ message: "Password must be more than 6 characters" });
 
     const user = await User.create({
       username,
       hashedPassword: await bcrypt.hash(password, 12),
       email,
-      isSeller: Boolean(isSeller)
+      isSeller: Boolean(isSeller),
     });
+
+    try {
+      await sendNotificationEmail({
+        to: user.email,
+        subject: "Welcome to INJAZ",
+        text: `Hi ${user.username}, welcome to INJAZ. Your account has been created successfully.`,
+        html: `<p>Hi <strong>${user.username}</strong>,</p><p>Welcome to INJAZ. Your account has been created successfully.</p>`,
+      });
+    } catch (emailError) {
+      console.error("Failed to send welcome email:", emailError.message);
+    }
 
     const { _id, createdAt, updatedAt } = user;
 
-    res
-      .status(201)
-      .json({ username: user.username, email: user.email, isSeller: user.isSeller, _id, createdAt, updatedAt });
+    res.status(201).json({
+      username: user.username,
+      email: user.email,
+      isSeller: user.isSeller,
+      _id,
+      createdAt,
+      updatedAt,
+    });
   } catch (err) {
     console.log(err);
     if (err.name === "ValidationError") {
@@ -45,20 +68,27 @@ async function signUp(req, res) {
 
 async function signIn(req, res) {
   try {
-    const { username, password } = req.body;
+    const { username, email, password } = req.body;
+    const loginValue = (username || email || "").trim();
 
-    if (!username || !password) {
+    if (!loginValue || !password) {
       return res.status(400).json({
-        message: "Username and password are required.",
+        message: "Username/email and password are required.",
       });
     }
-    const user = await User.findOne({ username:username.toLowerCase().trim() });
+
+    const user = await User.findOne({
+      $or: [
+        { username: loginValue.toLowerCase() },
+        { email: loginValue.toLowerCase() },
+      ],
+    });
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials." });
     }
 
-    if(user.isDeleted){
-      return res.status(401).json({message: 'Invalid credentials.'})
+    if (user.isDeleted) {
+      return res.status(401).json({ message: "Invalid credentials." });
     }
 
     const isPasswordCorrect = await bcrypt.compare(
@@ -72,17 +102,28 @@ async function signIn(req, res) {
     // Construct the payload
     const payload = { username: user.username, _id: user._id };
 
-
     const accessToken = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
+
+    try {
+      await sendNotificationEmail({
+        to: user.email,
+        subject: "INJAZ login alert",
+        text: `Hi ${user.username}, you signed in successfully to INJAZ.`,
+        html: `<p>Hi <strong>${user.username}</strong>,</p><p>You signed in successfully to INJAZ.</p>`,
+      });
+    } catch (emailError) {
+      console.error("Failed to send login email:", emailError.message);
+    }
+
     return res.status(200).json({
       accessToken,
       user: {
         _id: user._id,
         username: user.username,
         avatarUrl: user.avatarUrl,
-        isSeller: user.isSeller
+        isSeller: user.isSeller,
       },
     });
   } catch (err) {
@@ -105,11 +146,17 @@ async function verifyUser(req, res) {
     }
 
     return res.status(200).json({
+<<<<<<< HEAD
+      _id: user._id,
+      username: user.username,
+      isSeller: user.isSeller,
+=======
         _id: user._id,
         username: user.username,
         isSeller: user.isSeller,
         avatarUrl: user.avatarUrl,
         role: user.role
+>>>>>>> c4ae4c84a6f4bd826047564433ba05c990f6ef43
     });
   } catch (err) {
     console.error(err);

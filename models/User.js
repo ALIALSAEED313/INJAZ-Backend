@@ -7,17 +7,17 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
       trim: true,
-      lowercase: true
+      lowercase: true,
     },
 
     hashedPassword: {
       type: String,
-      required: true
+      required: true,
     },
 
     name: {
       type: String,
-      trim: true
+      trim: true,
     },
 
     email: {
@@ -25,52 +25,64 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
       trim: true,
-      lowercase: true
+      lowercase: true,
     },
 
     avatarUrl: {
       type: String,
-      default: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWC-v0HrKYp0-av4D0eTZv5hoIHoW35GhmKG2djTVP4Q&s'
+      default:
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWC-v0HrKYp0-av4D0eTZv5hoIHoW35GhmKG2djTVP4Q&s",
     },
 
     bio: {
       type: String,
-      trim: true
+      trim: true,
     },
 
     country: {
       type: String,
-      trim: true
+      trim: true,
     },
 
-    languages: [{
+    gender: {
       type: String,
-      trim: true
-    }],
+      enum: ["male", "female"],
+      trim: true,
+      lowercase: true,
+    },
 
-    skills: [{
-      type: String,
-      trim: true
-    }],
+    languages: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+
+    skills: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
 
     isSeller: {
       type: Boolean,
-      default: false
+      default: false,
     },
 
     role: {
       type: String,
-      enum: ['user', 'admin'],
-      default: 'user'
+      enum: ["user", "admin"],
+      default: "user",
     },
 
-    isDeleted:{
+    isDeleted: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
-  { timestamps: true }
-)
+  { timestamps: true },
+);
 
 userSchema.set("toJSON", {
   transform: (document, returnedObject) => {
