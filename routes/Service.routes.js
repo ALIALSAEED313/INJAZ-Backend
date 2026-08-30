@@ -3,13 +3,13 @@ const verifyToken = require("../middleware/verifyToken");
 
 const {
   getServices,
+  getPopularSearches,
   getServiceById,
   createService,
   updateService,
   deleteService,
   getServicesByFreelancer,
   getMyServices,
-  getPopularSearches,
 } = require("../controllers/service.controller");
 
 const router = express.Router();
@@ -17,7 +17,7 @@ const router = express.Router();
 router.get("/", getServices);
 
 router.get("/my-services", verifyToken, getMyServices);
-router.get("/populer-searches", getPopularSearches);
+router.get("/popular-searches", getPopularSearches);
 
 router.get("/:id", getServiceById);
 
