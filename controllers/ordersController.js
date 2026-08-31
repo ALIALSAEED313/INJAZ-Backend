@@ -28,12 +28,16 @@ async function createOrder(req, res) {
 
     const seller = await User.findById(sellerId).select("email username");
     if (seller?.email) {
-      await sendNotificationEmail({
-        to: seller.email,
-        subject: notification.title,
-        text: notification.message,
-        html: `<p>${notification.message}</p>`,
-      });
+      try {
+        await sendNotificationEmail({
+          to: seller.email,
+          subject: notification.title,
+          text: notification.message,
+          html: `<p>${notification.message}</p>`,
+        });
+      } catch (emailError) {
+        console.error("Email notification failed:", emailError.message);
+      }
     }
 
     res

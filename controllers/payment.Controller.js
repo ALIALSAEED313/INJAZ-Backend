@@ -21,7 +21,8 @@ const createPayment = async (req, res) => {
                 currency: "BHD",
 
                 customer: {
-                    first_name: req.user.username,
+                    first_name: req.user.username || "Test",
+                    email: req.user.email || "test@example.com",
                 },
 
                 source: {
@@ -86,6 +87,10 @@ const verifyPayment = async (req, res) => {
         )
 
         const payment = await response.json()
+
+        console.log("TAP VERIFY STATUS:", payment.status)
+        console.log("TAP VERIFY RESPONSE:", payment.response)
+        console.log("TAP VERIFY FULL:", payment)
 
         if (!response.ok) {
             return res.status(400).json({
