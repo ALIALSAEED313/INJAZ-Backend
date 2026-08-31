@@ -1,30 +1,39 @@
 const mongoose = require('mongoose')
 
 const orderSchema = new mongoose.Schema({
-    service:{
+    service: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Service',
         required: true
     },
-    buyer:{
+    buyer: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
     },
-    seller:{
+    seller: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
     },
-    price:{
+    price: {
         type: Number,
         required: true
     },
-    status:{
+    status: {
         type: String,
         enum: ['Requested', 'Pending', 'In Progress', 'Delivered', 'Cancelled'],
         default: 'Requested'
-    }
-}, {timestamps: true})
+    },
+    paymentStatus: {
+        type: String,
+        enum: ["pending", "paid", "failed"],
+        default: "pending",
+    },
+    tapChargeId: {
+        type: String,
+        default: "",
+    },
+}, { timestamps: true })
 
 module.exports = mongoose.model('Order', orderSchema)
