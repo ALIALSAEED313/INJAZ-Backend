@@ -95,11 +95,16 @@ async function updateProfile(req, res) {
     if (name !== undefined) updateData.name = name;
     if (bio !== undefined) updateData.bio = bio;
     if (country !== undefined) updateData.country = country;
-    if (gender !== undefined) updateData.gender = gender;
+    if (gender !== undefined && String(gender).trim() !== "") {
+      updateData.gender = String(gender).trim().toLowerCase();
+    }
     if (languages !== undefined)
       updateData.languages = normalizeListValue(languages);
     if (skills !== undefined) updateData.skills = normalizeListValue(skills);
-    if (isSeller !== undefined) updateData.isSeller = isSeller;
+    if (isSeller !== undefined) {
+      const sellerValue = String(isSeller).trim().toLowerCase();
+      updateData.isSeller = sellerValue === "true";
+    }
 
     if (req.file && req.file.url) {
       updateData.avatarUrl = req.file.url;

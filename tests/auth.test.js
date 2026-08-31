@@ -8,6 +8,7 @@ jest.mock("../utils/emailService", () => ({
 
 const request = require("supertest");
 const mongoose = require("mongoose");
+const jwt = require("jsonwebtoken");
 const app = require("../app");
 
 const User = require("../models/User");
@@ -26,6 +27,46 @@ afterAll(async () => {
 });
 
 describe("Auth Routes", () => {
+  describe("PUT /profile", () => {
+    test("ignores blank gender values and keeps booleans valid", async () => {
+      const user = await User.create({
+        username: "profileuser",
+        email: "profileuser@example.com",
+        hashedPassword: "hashedpassword",
+        name: "Old Name",
+        bio: "Old bio",
+        country: "Jordan",
+        gender: "male",
+        languages: ["English"],
+        skills: ["React"],
+        isSeller: false,
+      });
+
+      const token = jwt.sign(
+        { _id: user._id, username: user.username },
+        process.env.JWT_SECRET,
+      );
+
+      const response = await request(app)
+        .put("/profile")
+        .set("Authorization", `Bearer ${token}`)
+        .field("name", "New Name")
+        .field("bio", "Updated bio")
+        .field("country", "UAE")
+        .field("gender", "")
+        .field("languages", JSON.stringify(["English", "Arabic"]))
+        .field("skills", JSON.stringify(["React", "Node"]))
+        .field("isSeller", "false");
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body.name).toBe("New Name");
+      expect(response.body.bio).toBe("Updated bio");
+      expect(response.body.country).toBe("UAE");
+      expect(response.body.gender).toBe("male");
+      expect(response.body.isSeller).toBe(false);
+    });
+  });
+
   describe("POST /auth/sign-up", () => {
     test("creates a new user", async () => {
       const response = await request(app).post("/auth/sign-up").send({
