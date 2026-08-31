@@ -16,6 +16,7 @@ const adminRoutes = require("./routes/admin.routes")
 const notificationRoutes = require("./routes/notification.routes")
 const sendEmail = require("./middleware/sendEmail")
 const paymentRoutes = require('./routes/payment.routes')
+const paymentDetailsRoutes = require('./routes/paymentDetails.routes')
 
 // Middleware
 app.use(
@@ -38,6 +39,7 @@ app.use("/reviews", reviewRoutes)
 app.use("/admin", adminRoutes)
 app.use("/notifications", notificationRoutes)
 app.use('/payments', paymentRoutes)
+app.use('/payment-details', paymentDetailsRoutes)
 
 app.get("/test-email", async (req, res) => {
   try {
