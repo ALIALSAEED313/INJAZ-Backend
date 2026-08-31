@@ -56,15 +56,28 @@ async function sendMessage(req, res) {
             content.length > 60 ? content.substring(0, 57) + "..." : content,
         });
 
-        const recipient =
-          await User.findById(recipientId).select("email username");
+        const recipient = await User.findById(recipientId).select("email username");
         if (recipient?.email) {
-          await sendNotificationEmail({
-            to: recipient.email,
-            subject: notification.title,
-            text: notification.message,
-            html: `<p>${notification.message}</p>`,
-          });
+          try {
+            await sendNotificationEmail({
+              to: recipient.email,
+              subject: notification.title,
+              text: notification.message,
+              html: `
+                <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eaeaea; border-radius: 8px; max-width: 600px; margin: auto;">
+                  <h2 style="color: #1ba84c;">New Message Received 💬</h2>
+                  <p>Hi <strong>${recipient.username}</strong>,</p>
+                  <p>You have a new message waiting for you on INJAZ.</p>
+                  <blockquote style="border-left: 4px solid #1ba84c; padding: 15px; background-color: #f9f9f9; color: #555; margin: 15px 0; font-style: italic;">
+                    "${content.length > 100 ? content.substring(0, 97) + '...' : content}"
+                  </blockquote>
+                  <a href="http://localhost:5173/chat/${conversationId}" style="display: inline-block; padding: 12px 24px; background-color: #1ba84c; color: white; text-decoration: none; border-radius: 6px; margin-top: 10px; font-weight: bold;">Reply to Message</a>
+                </div>
+              `,
+            });
+          } catch (emailError) {
+            console.error("Email notification failed:", emailError.message);
+          }
         }
       }
     }

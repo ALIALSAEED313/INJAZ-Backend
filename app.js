@@ -14,7 +14,7 @@ const chatRoutes = require("./routes/chatRoutes")
 const reviewRoutes = require("./routes/review.routes")
 const adminRoutes = require("./routes/admin.routes")
 const notificationRoutes = require("./routes/notification.routes")
-const sendEmail = require("./middleware/sendEmail")
+const sendEmail = require("./utils/sendEmail")
 const paymentRoutes = require('./routes/payment.routes')
 const paymentDetailsRoutes = require('./routes/paymentDetails.routes')
 

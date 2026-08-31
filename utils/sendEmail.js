@@ -13,7 +13,7 @@ const sendEmail = async (options) => {
     });
 
     const mailOptions = {
-      from: `"Injaz Platform" <${process.env.BREVO_LOGIN}>`, 
+      from: `"Injaz Platform" <alialsaeed.p@gmail.com>`, 
       to: options.email,
       subject: options.subject,
       html: options.message,
