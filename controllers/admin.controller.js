@@ -10,7 +10,7 @@ async function getStats(req, res) {
         const allUsers = await User.countDocuments({ isDeleted: false })
         const allSellers = await User.countDocuments({ isDeleted: false, isSeller: true })
         const allServices = await Service.countDocuments()
-        const allOrders = await Order.countDocuments()
+        const allOrders = await Order.countDocuments({ paymentStatus: "paid" })
         const allReviews = await Review.countDocuments()
 
         return res.status(200).json({
@@ -61,7 +61,7 @@ async function getServices(req, res) {
 
 async function getOrders(req, res) {
     try {
-        const orders = await Order.find()
+        const orders = await Order.find({ paymentStatus: "paid" })
             .populate("buyer", "username name")
             .populate("seller", "username name")
             .populate("service", "title")
@@ -223,4 +223,3 @@ module.exports = {
     deleteService,
     deleteOrder
 }
-

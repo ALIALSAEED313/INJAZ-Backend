@@ -33,4 +33,15 @@ const notificationSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
+notificationSchema.index(
+    { order: 1, type: 1 },
+    {
+        unique: true,
+        partialFilterExpression: {
+            order: { $exists: true },
+            type: 'ORDER_REQUESTED'
+        }
+    }
+);
+
 module.exports = mongoose.model('Notification', notificationSchema);

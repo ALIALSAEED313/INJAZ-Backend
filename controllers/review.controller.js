@@ -10,7 +10,10 @@ async function createReview(req, res) {
 
         if (!rating) { return res.status(400).json({ message: "Rating is required" }) }
 
-        const foundOrder = await Order.findById(req.params.orderId)
+        const foundOrder = await Order.findOne({
+            _id: req.params.orderId,
+            paymentStatus: "paid"
+        })
         if (!foundOrder) { return res.status(404).json({ message: 'Order not found' }) }
 
         if (foundOrder.buyer.toString() !== req.user._id.toString()) {
@@ -90,6 +93,15 @@ async function getReviewsForSeller(req, res) {
 
 async function getReviewByOrder(req, res) {
     try {
+        const order = await Order.findOne({
+            _id: req.params.orderId,
+            paymentStatus: "paid",
+            $or: [{ buyer: req.user._id }, { seller: req.user._id }]
+        })
+        if (!order) {
+            return res.status(404).json({ message: "Order not found" })
+        }
+
         const review = await Review.findOne({
             order: req.params.orderId
         })

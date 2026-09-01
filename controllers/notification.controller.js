@@ -6,11 +6,20 @@ async function getUserNotifications(req, res) {
 
         const notifications = await Notification.find({ recipient: userId })
             .populate('sender', 'username avatarUrl')
-            .populate('order', 'status service price')
+            .populate({
+                path: 'order',
+                match: { paymentStatus: 'paid' },
+                select: 'status service price paymentStatus'
+            })
             .sort({ createdAt: -1 });
 
-        const unread = notifications.filter(n => !n.isRead);
-        const read = notifications.filter(n => n.isRead);
+        const visibleNotifications = notifications.filter(notification =>
+            !['ORDER_REQUESTED', 'ORDER_CREATED', 'STATUS_CHANGED'].includes(notification.type) ||
+            notification.order
+        );
+
+        const unread = visibleNotifications.filter(n => !n.isRead);
+        const read = visibleNotifications.filter(n => n.isRead);
 
         res.status(200).json({ unread, read, totalUnread: unread.length });
     } catch (err) {
