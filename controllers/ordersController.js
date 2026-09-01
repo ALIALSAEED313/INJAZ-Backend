@@ -1,56 +1,25 @@
 const Order = require("../models/Order");
 const User = require("../models/User");
-const Notification = require("../models/Notification");
-const { sendNotificationEmail } = require("../utils/emailService");
+const Service = require("../models/Services");
 
 async function createOrder(req, res) {
     try {
-        const { serviceId, sellerId, price } = req.body;
+        const { serviceId } = req.body;
         const buyerId = req.user._id;
+
+        const service = await Service.findById(serviceId).select("freelancer price");
+        if (!service) {
+            return res.status(404).json({ message: "Service not found" });
+        }
 
         const newOrder = await Order.create({
             service: serviceId,
             buyer: buyerId,
-            seller: sellerId,
-            price: price,
+            seller: service.freelancer,
+            price: service.price,
             status: "Requested",
+            paymentStatus: "pending",
         });
-
-        const notification = await Notification.create({
-            recipient: sellerId,
-            sender: buyerId,
-            type: "ORDER_REQUESTED",
-            title: "New Order Requested!",
-            message:
-                "A buyer has requested your service. Please accept the order to proceed.",
-            order: newOrder._id,
-        });
-
-        const seller = await User.findById(sellerId).select("email username");
-        if (seller?.email) {
-            try {
-                await sendNotificationEmail({
-                    to: seller.email,
-                    subject: notification.title,
-                    text: notification.message,
-                    html: `
-            <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eaeaea; border-radius: 8px; max-width: 600px; margin: auto;">
-              <h2 style="color: #1ba84c;">New Order Request! 🎉</h2>
-              <p>Hi <strong>${seller.username}</strong>,</p>
-              <p>Great news! A buyer just requested your service on INJAZ.</p>
-              <p style="padding: 15px; background-color: #f9f9f9; border-left: 4px solid #1ba84c;">
-                <strong>Message:</strong> ${notification.message}
-              </p>
-              <a href="http://localhost:5173/dashboard" style="display: inline-block; padding: 12px 24px; background-color: #1ba84c; color: white; text-decoration: none; border-radius: 6px; margin-top: 15px; font-weight: bold;">View Order Dashboard</a>
-            </div>
-          `,
-                });
-            } catch (emailError) {
-                console.error("Email notification failed:", emailError.message);
-            }
-        }
-
-
 
         res
             .status(201)
@@ -65,6 +34,7 @@ async function getUserOrders(req, res) {
         const userId = req.user._id;
 
         const orders = await Order.find({
+            paymentStatus: "paid",
             $or: [{ buyer: userId }, { seller: userId }],
         })
             .populate("service", "title category")
@@ -85,7 +55,7 @@ async function updateOrderStatus(req, res) {
         const { status } = req.body;
         const userId = req.user._id;
 
-        const order = await Order.findById(id);
+        const order = await Order.findOne({ _id: id, paymentStatus: "paid" });
 
         if (!order) {
             return res.status(404).json({ message: "Order not found" });
@@ -159,7 +129,11 @@ async function updateOrderStatus(req, res) {
 const getOrderById = async (req, res) => {
     try {
         const id = req.params.orderId || req.params.id;
-        const order = await Order.findById(id)
+        const order = await Order.findOne({
+            _id: id,
+            paymentStatus: "paid",
+            $or: [{ buyer: req.user._id }, { seller: req.user._id }],
+        })
             .populate("buyer", "username email")
             .populate("seller", "username email")
             .populate("service", "title category price");

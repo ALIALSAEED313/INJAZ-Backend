@@ -14,6 +14,20 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
 });
 
+const chatUpload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, callback) => {
+    const allowedTypes = new Set([
+      "image/jpeg", "image/png", "image/gif", "image/webp",
+      "application/pdf", "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "text/plain",
+    ]);
+    callback(allowedTypes.has(file.mimetype) ? null : new Error("Unsupported file type"), allowedTypes.has(file.mimetype));
+  },
+});
+
 const uploadToImageKit = async (req, res, next) => {
   try {
     const files = req.files || (req.file ? [req.file] : []);
@@ -29,7 +43,9 @@ const uploadToImageKit = async (req, res, next) => {
           fileName: `injaz-${Date.now()}-${file.originalname}`,
           folder: req.baseUrl?.includes("/profile")
             ? "/injaz_avatars"
-            : "/injaz_services",
+            : req.baseUrl?.includes("/chat")
+              ? "/injaz_chat"
+              : "/injaz_services",
         });
 
         return {
@@ -61,5 +77,6 @@ const uploadToImageKit = async (req, res, next) => {
 
 module.exports = {
   upload,
+  chatUpload,
   uploadToImageKit,
 };

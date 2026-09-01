@@ -13,13 +13,14 @@ const {
 } = require("../controllers/chatController");
 
 const verifyToken = require("../middleware/verifyToken");
+const { chatUpload, uploadToImageKit } = require("../middleware/Upload");
 
 router.use(verifyToken);
 router.get("/conversations", getConversations);
 router.get("/unread", getUnreadChats);
 router.post("/conversations", getOrCreateConversation);
 router.delete("/conversations/:conversationId", deleteConversation);
-router.post("/messages", sendMessage);
+router.post("/messages", chatUpload.single("attachment"), uploadToImageKit, sendMessage);
 router.put("/messages/:messageId", updateMessage);
 router.delete("/messages/:messageId", deleteMessage);
 router.put("/conversations/:conversationId/read", markConversationAsRead);

@@ -28,12 +28,27 @@ async function getOrCreateConversation(req, res) {
 
 async function sendMessage(req, res) {
   try {
-    const { conversationId, content, serviceId } = req.body;
+    const { conversationId, serviceId } = req.body;
+    const content = String(req.body.content || "").trim();
     const senderId = req.user._id;
+
+    if (!content && !req.file?.url) {
+      return res.status(400).json({ message: "Message text or attachment is required" });
+    }
+
+    const attachment = req.file?.url
+      ? {
+          url: req.file.url,
+          name: req.file.originalname,
+          mimeType: req.file.mimetype,
+          size: req.file.size,
+        }
+      : undefined;
 
     const newMessage = await Message.create({
       conversation: conversationId,
       content: content,
+      attachment,
       sender: senderId,
       service: serviceId,
     });
@@ -47,13 +62,14 @@ async function sendMessage(req, res) {
         (p) => p.toString() !== senderId.toString(),
       );
       if (recipientId) {
+        const notificationText = content || "Sent an attachment";
         const notification = await Notification.create({
           recipient: recipientId,
           sender: senderId,
           type: "NEW_MESSAGE",
           title: "New Message Received",
           message:
-            content.length > 60 ? content.substring(0, 57) + "..." : content,
+            notificationText.length > 60 ? notificationText.substring(0, 57) + "..." : notificationText,
         });
 
         const recipient = await User.findById(recipientId).select("email username");
@@ -69,7 +85,7 @@ async function sendMessage(req, res) {
                   <p>Hi <strong>${recipient.username}</strong>,</p>
                   <p>You have a new message waiting for you on INJAZ.</p>
                   <blockquote style="border-left: 4px solid #1ba84c; padding: 15px; background-color: #f9f9f9; color: #555; margin: 15px 0; font-style: italic;">
-                    "${content.length > 100 ? content.substring(0, 97) + '...' : content}"
+                    "${notificationText.length > 100 ? notificationText.substring(0, 97) + '...' : notificationText}"
                   </blockquote>
                   <a href="http://localhost:5173/chat/${conversationId}" style="display: inline-block; padding: 12px 24px; background-color: #1ba84c; color: white; text-decoration: none; border-radius: 6px; margin-top: 10px; font-weight: bold;">Reply to Message</a>
                 </div>
