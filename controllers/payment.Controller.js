@@ -144,7 +144,7 @@ const verifyPayment = async (req, res) => {
                     tapChargeId: tapId,
                     paymentStatus: { $ne: "paid" },
                 },
-                { $set: { paymentStatus: "paid" } },
+                { $set: { paymentStatus: "paid", paidAt: new Date() } },
                 { new: true, runValidators: true },
             )
 

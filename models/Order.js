@@ -22,7 +22,7 @@ const orderSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['Requested', 'Pending', 'In Progress', 'Delivered', 'Cancelled'],
+        enum: ['Requested', 'Pending', 'In Progress', 'Delivered', 'Completed', 'Cancelled'],
         default: 'Requested'
     },
     paymentStatus: {
@@ -33,6 +33,33 @@ const orderSchema = new mongoose.Schema({
     tapChargeId: {
         type: String,
         trim: true,
+    },
+    paidAt: Date,
+    acceptedAt: Date,
+    startedAt: Date,
+    completedAt: Date,
+    delivery: {
+        message: {
+            type: String,
+            trim: true,
+            maxlength: 2000,
+        },
+        files: [{
+            url: { type: String, required: true },
+            fileId: String,
+            name: { type: String, required: true },
+            mimeType: String,
+            size: Number,
+        }],
+        deliveredAt: Date,
+    },
+    revision: {
+        message: {
+            type: String,
+            trim: true,
+            maxlength: 1000,
+        },
+        requestedAt: Date,
     },
 }, { timestamps: true })
 

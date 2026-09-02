@@ -1,5 +1,6 @@
 const multer = require("multer");
 const ImageKit = require("imagekit");
+const path = require("path");
 
 const imagekit = new ImageKit({
   publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
@@ -28,6 +29,46 @@ const chatUpload = multer({
   },
 });
 
+const DELIVERY_ALLOWED_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "application/pdf",
+  "application/zip",
+  "application/x-zip-compressed",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  "text/plain",
+  "text/csv",
+]);
+const DELIVERY_ALLOWED_EXTENSIONS = new Set([
+  ".jpg", ".jpeg", ".png", ".gif", ".webp", ".pdf", ".zip",
+  ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".txt", ".csv",
+]);
+
+const deliveryUpload = multer({
+  storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024,
+    files: 5,
+  },
+  fileFilter: (req, file, callback) => {
+    const extension = path.extname(file.originalname).toLowerCase();
+    const allowed =
+      DELIVERY_ALLOWED_TYPES.has(file.mimetype) &&
+      DELIVERY_ALLOWED_EXTENSIONS.has(extension);
+    callback(
+      allowed ? null : new Error("Unsupported delivery file type"),
+      allowed,
+    );
+  },
+});
+
 const uploadToImageKit = async (req, res, next) => {
   try {
     const files = req.files || (req.file ? [req.file] : []);
@@ -38,13 +79,16 @@ const uploadToImageKit = async (req, res, next) => {
 
     const uploadedFiles = await Promise.all(
       files.map(async (file) => {
+        const safeName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, "-");
         const response = await imagekit.upload({
           file: file.buffer,
-          fileName: `injaz-${Date.now()}-${file.originalname}`,
+          fileName: `injaz-${Date.now()}-${safeName}`,
           folder: req.baseUrl?.includes("/profile")
             ? "/injaz_avatars"
             : req.baseUrl?.includes("/chat")
               ? "/injaz_chat"
+              : req.baseUrl?.includes("/orders")
+                ? "/injaz_deliveries"
               : "/injaz_services",
         });
 
@@ -78,5 +122,6 @@ const uploadToImageKit = async (req, res, next) => {
 module.exports = {
   upload,
   chatUpload,
+  deliveryUpload,
   uploadToImageKit,
 };

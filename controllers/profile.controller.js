@@ -1,4 +1,7 @@
 const User = require("../models/User");
+const Service = require("../models/Services");
+const Review = require("../models/Review");
+const Order = require("../models/Order");
 
 function normalizeListValue(value) {
   if (Array.isArray(value)) {
@@ -46,6 +49,32 @@ async function getProfile(req, res) {
       languages: normalizeListValue(foundUser.languages),
       skills: normalizeListValue(foundUser.skills),
     };
+
+    if (foundUser.isSeller) {
+      const serviceIds = await Service.find({ freelancer: foundUser._id }).distinct("_id");
+      const [ratingRows, completedOrders] = await Promise.all([
+        Review.aggregate([
+          { $match: { service: { $in: serviceIds } } },
+          {
+            $group: {
+              _id: null,
+              averageRating: { $avg: "$rating" },
+              totalReviews: { $sum: 1 },
+            },
+          },
+        ]),
+        Order.countDocuments({
+          seller: foundUser._id,
+          paymentStatus: "paid",
+          status: "Completed",
+        }),
+      ]);
+      formattedUser.sellerStats = {
+        averageRating: ratingRows[0]?.averageRating || 0,
+        totalReviews: ratingRows[0]?.totalReviews || 0,
+        completedOrders,
+      };
+    }
 
     return res.status(200).json(formattedUser);
   } catch (err) {
