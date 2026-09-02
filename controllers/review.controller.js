@@ -1,6 +1,7 @@
 const Review = require('../models/Review')
 const Order = require('../models/Order')
 const Service = require('../models/Services')
+const mongoose = require('mongoose')
 
 
 
@@ -8,7 +9,10 @@ async function createReview(req, res) {
     try {
         const { comment, rating } = req.body
 
-        if (!rating) { return res.status(400).json({ message: "Rating is required" }) }
+        const numericRating = Number(rating)
+        if (!Number.isInteger(numericRating) || numericRating < 1 || numericRating > 5) {
+            return res.status(400).json({ message: "Rating must be an integer from 1 to 5" })
+        }
 
         const foundOrder = await Order.findOne({
             _id: req.params.orderId,
@@ -20,8 +24,8 @@ async function createReview(req, res) {
             return res.status(403).json({ message: "You cannot review this order" })
         }
 
-        if (foundOrder.status !== 'Delivered') {
-            return res.status(400).json({ message: "You can only review Delivered orders" })
+        if (foundOrder.status !== 'Completed') {
+            return res.status(400).json({ message: "You can only review Completed orders" })
         }
 
         const existingReview = await Review.findOne({ order: foundOrder._id })
@@ -33,7 +37,7 @@ async function createReview(req, res) {
             order: foundOrder._id,
             reviewer: req.user._id,
             comment,
-            rating
+            rating: numericRating
         })
 
         return res.status(201).json(createdReview)
@@ -50,11 +54,57 @@ async function createReview(req, res) {
 
 async function getServiceReviews(req, res) {
     try {
-        const allServiceReviews = await Review.find({ service: req.params.serviceId })
+        const page = Math.max(Number(req.query.page) || 1, 1)
+        const limit = Math.min(Math.max(Number(req.query.limit) || 5, 1), 20)
+        const sortOptions = {
+            recent: { createdAt: -1 },
+            highest: { rating: -1, createdAt: -1 },
+            lowest: { rating: 1, createdAt: -1 }
+        }
+        const sort = sortOptions[req.query.sort] || sortOptions.recent
+        const filter = { service: req.params.serviceId }
+
+        const [reviews, totalReviews, summaryRows] = await Promise.all([
+          Review.find(filter)
             .populate("reviewer", "username name avatarUrl")
             .select("comment rating reviewer createdAt")
+            .sort(sort)
+            .skip((page - 1) * limit)
+            .limit(limit),
+          Review.countDocuments(filter),
+          Review.aggregate([
+            { $match: { service: new mongoose.Types.ObjectId(req.params.serviceId) } },
+            {
+              $group: {
+                _id: "$rating",
+                count: { $sum: 1 },
+                total: { $sum: "$rating" }
+              }
+            }
+          ])
+        ])
 
-        return res.status(200).json(allServiceReviews)
+        const distribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+        let ratingTotal = 0
+        summaryRows.forEach(row => {
+          distribution[row._id] = row.count
+          ratingTotal += row.total
+        })
+
+        return res.status(200).json({
+          reviews,
+          summary: {
+            averageRating: totalReviews ? ratingTotal / totalReviews : 0,
+            reviewCount: totalReviews,
+            distribution
+          },
+          pagination: {
+            page,
+            limit,
+            totalPages: Math.ceil(totalReviews / limit),
+            hasMore: page * limit < totalReviews
+          }
+        })
     } catch (err) {
         console.error(err)
 
@@ -132,6 +182,10 @@ async function getReviewByOrder(req, res) {
 async function updateReview(req, res) {
     try {
         const { comment, rating } = req.body
+        const numericRating = Number(rating)
+        if (!Number.isInteger(numericRating) || numericRating < 1 || numericRating > 5) {
+            return res.status(400).json({ message: "Rating must be an integer from 1 to 5" })
+        }
         const foundReview = await Review.findById(req.params.reviewId)
         if (!foundReview) { return res.status(404).json({ message: 'Review not found' }) }
         if (foundReview.reviewer.toString() !== req.user._id.toString()) {
@@ -140,7 +194,7 @@ async function updateReview(req, res) {
 
         const updatedReview = await Review.findByIdAndUpdate(foundReview._id, {
             comment,
-            rating
+            rating: numericRating
         }, { new: true, runValidators: true })
 
         return res.status(200).json(updatedReview)

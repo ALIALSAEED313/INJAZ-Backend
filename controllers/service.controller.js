@@ -1,5 +1,34 @@
 const Service = require("../models/Services");
 const Search = require("../models/Search");
+const Review = require("../models/Review");
+
+async function attachRatingStats(services) {
+  const list = Array.isArray(services) ? services : [services];
+  const ids = list.filter(Boolean).map(service => service._id);
+  if (!ids.length) return Array.isArray(services) ? [] : null;
+
+  const stats = await Review.aggregate([
+    { $match: { service: { $in: ids } } },
+    {
+      $group: {
+        _id: "$service",
+        averageRating: { $avg: "$rating" },
+        reviewCount: { $sum: 1 },
+      },
+    },
+  ]);
+  const statsByService = new Map(stats.map(row => [row._id.toString(), row]));
+  const enriched = list.map(service => {
+    const rating = statsByService.get(service._id.toString());
+    return {
+      ...service.toObject(),
+      averageRating: rating?.averageRating || 0,
+      reviewCount: rating?.reviewCount || 0,
+    };
+  });
+
+  return Array.isArray(services) ? enriched : enriched[0];
+}
 const getServices = async (req, res) => {
   try {
     const {
@@ -74,8 +103,9 @@ const getServices = async (req, res) => {
       .limit(limitNumber)
       .populate("freelancer", "username email avatarUrl");
 
+    const servicesWithRatings = await attachRatingStats(services);
     res.status(200).json({
-      services,
+      services: servicesWithRatings,
       currentPage: pageNumber,
       totalPages: Math.ceil(totalServices / limitNumber),
       totalServices,
@@ -112,7 +142,7 @@ const getServiceById = async (req, res) => {
         message: "Service not found",
       });
     }
-    res.status(200).json(service);
+    res.status(200).json(await attachRatingStats(service));
   } catch (error) {
     res.status(500).json({
       message: "Failed to get service",
@@ -207,7 +237,7 @@ const getServicesByFreelancer = async (req, res) => {
       freelancer: req.params.userId,
     }).populate("freelancer", "username avatarUrl");
 
-    return res.status(200).json(services);
+    return res.status(200).json(await attachRatingStats(services));
   } catch (error) {
     return res.status(500).json({
       message: "Failed to get freelancer services",
@@ -220,7 +250,7 @@ const getMyServices = async (req, res) => {
     const services = await Service.find({
       freelancer: req.user._id,
     });
-    res.status(200).json(services);
+    res.status(200).json(await attachRatingStats(services));
   } catch (error) {
     res.status(500).json({
       message: "Failed to get your services",

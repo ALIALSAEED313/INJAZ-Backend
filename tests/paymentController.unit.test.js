@@ -154,7 +154,7 @@ describe("Tap payment verification", () => {
         tapChargeId: "charge-1",
         paymentStatus: { $ne: "paid" },
       },
-      { $set: { paymentStatus: "paid" } },
+      { $set: { paymentStatus: "paid", paidAt: expect.any(Date) } },
       { new: true, runValidators: true },
     )
     expect(Notification.create).toHaveBeenCalledTimes(2)

@@ -12,7 +12,15 @@ const notificationSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['ORDER_REQUESTED', 'ORDER_CREATED', 'STATUS_CHANGED', 'NEW_MESSAGE'],
+        enum: [
+            'ORDER_REQUESTED',
+            'ORDER_CREATED',
+            'STATUS_CHANGED',
+            'NEW_MESSAGE',
+            'DELIVERY_SUBMITTED',
+            'DELIVERY_ACCEPTED',
+            'REVISION_REQUESTED'
+        ],
         required: true
     },
     title: {
@@ -26,6 +34,10 @@ const notificationSchema = new mongoose.Schema({
     order: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Order'
+    },
+    eventKey: {
+        type: String,
+        trim: true,
     },
     isRead: {
         type: Boolean,
@@ -41,6 +53,14 @@ notificationSchema.index(
             order: { $exists: true },
             type: 'ORDER_REQUESTED'
         }
+    }
+);
+
+notificationSchema.index(
+    { eventKey: 1 },
+    {
+        unique: true,
+        partialFilterExpression: { eventKey: { $exists: true, $gt: '' } }
     }
 );
 

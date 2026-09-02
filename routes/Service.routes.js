@@ -19,6 +19,7 @@ router.get("/", getServices);
 
 router.get("/my-services", verifyToken, getMyServices);
 router.get("/popular-searches", getPopularSearches);
+router.get("/profile/:userId", getServicesByFreelancer);
 
 router.get("/:id", getServiceById);
 
@@ -39,7 +40,5 @@ router.put(
 );
 
 router.delete("/:id", verifyToken, deleteService);
-
-router.get("/profile/:userId", getServicesByFreelancer);
 
 module.exports = router;
