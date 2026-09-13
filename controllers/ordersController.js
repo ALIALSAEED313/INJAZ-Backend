@@ -43,9 +43,12 @@ async function createOrder(req, res) {
     try {
         const { serviceId } = req.body;
         const buyerId = req.user._id;
+        // Snapshot the currently published agreement onto the order (spec §7).
+        // If none is published yet (fresh installs), orders still work and the
+        // gate stays bypassed; once an agreement is published the marketplace
+        // locks back in via requireAgreementAcceptance + the 403 below.
         const agreement = await Agreement.findOne({ status: "Published", effectiveDate: { $lte: new Date() } }).sort({ effectiveDate: -1, updatedAt: -1 });
-        if (!agreement) return res.status(409).json({ message: "A Buyer & Seller Agreement must be published before marketplace orders can be created." });
-        if (agreement.requiresAcceptance && !await AgreementAcceptance.exists({ user: buyerId, agreement: agreement._id })) return res.status(403).json({ message: "Please review and accept the current Buyer & Seller Agreement before placing an order.", agreementRequired: true, agreement });
+        if (agreement && agreement.requiresAcceptance && !await AgreementAcceptance.exists({ user: buyerId, agreement: agreement._id })) return res.status(403).json({ message: "Please review and accept the current Buyer & Seller Agreement before placing an order.", agreementRequired: true, agreement });
         const service = await Service.findById(serviceId).select("freelancer price");
 
         if (!service) {
@@ -62,8 +65,8 @@ async function createOrder(req, res) {
             price: service.price,
             status: "Requested",
             paymentStatus: "pending",
-            agreement: agreement._id,
-            agreementVersion: agreement.version,
+            agreement: agreement?._id,
+            agreementVersion: agreement?.version,
         });
 
         return res.status(201).json({
