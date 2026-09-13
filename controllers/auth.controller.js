@@ -3,10 +3,12 @@ const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto")
 const { sendNotificationEmail } = require("../utils/emailService");
+const Agreement = require("../models/Agreement");
+const AgreementAcceptance = require("../models/AgreementAcceptance");
 
 async function signUp(req, res) {
   try {
-    const { username, password, email, isSeller } = req.body;
+    const { username, password, email, isSeller, agreementId, agreementAccepted } = req.body;
 
     // Validation
     if (!username || !password || !email)
@@ -18,12 +20,16 @@ async function signUp(req, res) {
         .status(400)
         .json({ message: "Password must be more than 6 characters" });
 
+    const agreement = await Agreement.findOne({ status: "Published", effectiveDate: { $lte: new Date() } }).sort({ effectiveDate: -1, updatedAt: -1 });
+    if (agreement && agreement.requiresAcceptance && !agreementId && !agreementAccepted) return res.status(400).json({ message: "You must review and accept the current Buyer & Seller Agreement.", agreementRequired: true, agreement });
+    if (agreement && agreementId && String(agreement._id) !== String(agreementId)) return res.status(409).json({ message: "This is no longer the current Buyer & Seller Agreement. Please review the latest version.", agreementRequired: true, agreement });
     const user = await User.create({
       username,
       hashedPassword: await bcrypt.hash(password, 12),
       email,
       isSeller: Boolean(isSeller),
     });
+    if (agreement && agreement.requiresAcceptance) await AgreementAcceptance.create({ user: user._id, agreement: agreement._id, version: agreement.version, acceptanceMethod: "registration", agreementType: agreement.agreementType || "buyer-seller", status: "accepted", ipAddress: (req.ip || "").slice(0, 100), userAgent: req.get("user-agent") || "" });
 
     try {
       await sendNotificationEmail({

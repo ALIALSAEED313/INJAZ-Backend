@@ -3,6 +3,8 @@ const User = require("../models/User");
 const Service = require("../models/Services");
 const Notification = require("../models/Notification");
 const { sendNotificationEmail } = require("../utils/emailService");
+const Agreement = require("../models/Agreement");
+const AgreementAcceptance = require("../models/AgreementAcceptance");
 
 const SELLER_TRANSITIONS = {
     Requested: new Set(["Pending", "Cancelled"]),
@@ -41,6 +43,9 @@ async function createOrder(req, res) {
     try {
         const { serviceId } = req.body;
         const buyerId = req.user._id;
+        const agreement = await Agreement.findOne({ status: "Published", effectiveDate: { $lte: new Date() } }).sort({ effectiveDate: -1, updatedAt: -1 });
+        if (!agreement) return res.status(409).json({ message: "A Buyer & Seller Agreement must be published before marketplace orders can be created." });
+        if (agreement.requiresAcceptance && !await AgreementAcceptance.exists({ user: buyerId, agreement: agreement._id })) return res.status(403).json({ message: "Please review and accept the current Buyer & Seller Agreement before placing an order.", agreementRequired: true, agreement });
         const service = await Service.findById(serviceId).select("freelancer price");
 
         if (!service) {
@@ -57,6 +62,8 @@ async function createOrder(req, res) {
             price: service.price,
             status: "Requested",
             paymentStatus: "pending",
+            agreement: agreement._id,
+            agreementVersion: agreement.version,
         });
 
         return res.status(201).json({
@@ -80,6 +87,7 @@ async function getUserOrders(req, res) {
             .populate("service", "title category")
             .populate("buyer", "username email")
             .populate("seller", "username email")
+            .populate("agreement", "title version status effectiveDate")
             .sort({ updatedAt: -1 });
 
         return res.status(200).json({ orders });
@@ -91,10 +99,20 @@ async function getUserOrders(req, res) {
     }
 }
 
+// Shared marketplace gate: sellers must accept the current agreement before
+// order status changes. Re-exported for a future requireAgreement middleware.
+async function requireCurrentAgreementAcceptance(userId) {
+    const agreement = await Agreement.findOne({ status: "Published", effectiveDate: { $lte: new Date() } }).sort({ effectiveDate: -1, updatedAt: -1 });
+    if (!agreement || !agreement.requiresAcceptance) return { agreement, accepted: true };
+    const accepted = await AgreementAcceptance.exists({ user: userId, agreement: agreement._id });
+    return { agreement, accepted: Boolean(accepted) };
+}
 async function updateOrderStatus(req, res) {
     try {
         const id = req.params.orderId || req.params.id;
         const { status } = req.body;
+        const gate = await requireCurrentAgreementAcceptance(req.user._id);
+        if (!gate.accepted) return res.status(403).json({ message: "Please review and accept the current Buyer & Seller Agreement before managing orders.", agreementRequired: true, agreement: gate.agreement });
         const order = await Order.findOne({ _id: id, paymentStatus: "paid" });
 
         if (!order) {
@@ -402,7 +420,8 @@ async function getOrderById(req, res) {
         })
             .populate("buyer", "username email")
             .populate("seller", "username email")
-            .populate("service", "title category price");
+            .populate("service", "title category price")
+            .populate("agreement", "title version status effectiveDate content");
 
         if (!order) {
             return res.status(404).json({ message: "Order not found" });
@@ -419,6 +438,7 @@ async function getOrderById(req, res) {
 module.exports = {
     createOrder,
     getUserOrders,
+    requireCurrentAgreementAcceptance,
     updateOrderStatus,
     authorizeDelivery,
     deliverOrder,

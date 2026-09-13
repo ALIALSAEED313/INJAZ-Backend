@@ -1,5 +1,6 @@
 const express = require("express");
 const verifyToken = require("../middleware/verifyToken");
+const requireAgreementAcceptance = require("../middleware/requireAgreementAcceptance");
 const { upload, uploadToImageKit } = require("../middleware/Upload");
 
 const {
@@ -26,6 +27,7 @@ router.get("/:id", getServiceById);
 router.post(
   "/",
   verifyToken,
+  requireAgreementAcceptance,
   upload.array("images", 5),
   uploadToImageKit,
   createService,
@@ -34,6 +36,7 @@ router.post(
 router.put(
   "/:id",
   verifyToken,
+  requireAgreementAcceptance,
   upload.array("images", 5),
   uploadToImageKit,
   updateService,
