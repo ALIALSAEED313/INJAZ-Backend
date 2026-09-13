@@ -61,6 +61,11 @@ const orderSchema = new mongoose.Schema({
         },
         requestedAt: Date,
     },
+    agreement: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Agreement',
+    },
+    agreementVersion: { type: String, trim: true },
 }, { timestamps: true })
 
 orderSchema.index(

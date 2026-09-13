@@ -12,6 +12,7 @@ const {
 } = require('../controllers/ordersController')
 
 const verifyToken = require("../middleware/verifyToken")
+const requireAgreementAcceptance = require("../middleware/requireAgreementAcceptance")
 const { deliveryUpload, uploadToImageKit } = require("../middleware/Upload")
 
 const handleDeliveryFiles = (req, res, next) => {
@@ -24,18 +25,19 @@ const handleDeliveryFiles = (req, res, next) => {
 }
 
 router.use(verifyToken)
-router.post('/', createOrder)
+router.post('/', requireAgreementAcceptance, createOrder)
 router.get('/my-orders', getUserOrders)
 router.post(
   '/:orderId/deliver',
   authorizeDelivery,
+  requireAgreementAcceptance,
   handleDeliveryFiles,
   uploadToImageKit,
   deliverOrder
 )
-router.post('/:orderId/accept-delivery', acceptDelivery)
-router.post('/:orderId/request-revision', requestRevision)
+router.post('/:orderId/accept-delivery', requireAgreementAcceptance, acceptDelivery)
+router.post('/:orderId/request-revision', requireAgreementAcceptance, requestRevision)
 router.get('/:orderId', getOrderById)
-router.put('/:orderId/status', updateOrderStatus)
+router.put('/:orderId/status', requireAgreementAcceptance, updateOrderStatus)
 
 module.exports = router

@@ -152,6 +152,14 @@ const getServiceById = async (req, res) => {
 };
 const createService = async (req, res) => {
   try {
+    // Spec §3: sellers must accept the current agreement before offering services.
+    // (Route-level requireAgreementAcceptance also guards this; kept as defense-in-depth.)
+    const Agreement = require("../models/Agreement");
+    const AgreementAcceptance = require("../models/AgreementAcceptance");
+    const agreement = await Agreement.findOne({ status: "Published", effectiveDate: { $lte: new Date() } }).sort({ effectiveDate: -1, updatedAt: -1 });
+    if (agreement && agreement.requiresAcceptance && !await AgreementAcceptance.exists({ user: req.user._id, agreement: agreement._id })) {
+      return res.status(403).json({ message: "Please review and accept the current Buyer & Seller Agreement before offering services.", agreementRequired: true, agreement });
+    }
     const { title, description, price, deliveryTime, category } = req.body;
     const imageUrls = (req.files || []).map((file) => file.url).filter(Boolean);
 
